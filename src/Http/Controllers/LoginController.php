@@ -3,6 +3,7 @@
 namespace Encore\Login\Http\Controllers;
 
 use App\Admin\Models\AdminUser;
+use App\Admin\Models\Assistant;
 use App\Admin\Models\Brand;
 use App\Admin\Models\Employee;
 use App\Admin\Models\Event;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 
@@ -118,18 +120,11 @@ class LoginController extends Controller
         $event_id = '';
         $brand_id = '';
         $employee_id = '';
+        $team_name = '';
 
         $admin_user = AdminUser::where('username', '=', $username)->get();
         if (!$admin_user->isEmpty() && isset($admin_user[0]->id)) {
             $id = $admin_user[0]->id;
-            if (Admin::user()->isRole('team')) {
-                $current = 'team';
-                $team = Team::where('user_id', '=', $id)
-                    ->get();
-                if (!$team->isEmpty()) {
-                    $team_id = $team[0]->id;
-                }
-            }
 
             if (Admin::user()->isRole('event')) {
                 $current = 'event';
@@ -142,6 +137,7 @@ class LoginController extends Controller
                     $team_id = $event[0]->team_id;
                     $event_id = $event[0]->id;
                 } else {
+                    // 只有浏览权限
                     $event_id = 0;
                 }
             }
@@ -166,16 +162,51 @@ class LoginController extends Controller
                     $employee_id = $employee[0]->id;
                 }
             }
+
+            if (Admin::user()->inRoles(['assistant-checker', 'assistant-order'])) {
+                $current = 'assistant';
+                $assistant = Assistant::where('user_id', '=', $id)
+                    ->get();
+                if (!$assistant->isEmpty()) {
+                    $event_id = $assistant[0]->event_id;
+                }
+            }
+
+            if (Admin::user()->isRole('team')) {
+                $current = 'team';
+                $team = Team::where('user_id', '=', $id)
+                    ->with('user')
+                    ->get();
+                if (!$team->isEmpty()) {
+                    $team_id = $team[0]->id;
+                    $team_name = $team[0]->user()->name;
+                }
+            } else {
+                if ($event_id && $event_id > 0) {
+                    $team = Team::join('prefix_event', 'prefix_team.id', 'prefix_event.team_id')
+                        ->select('prefix_team.*')
+                        ->with('user')
+                        ->where('prefix_event.id', '=', $event_id)
+                        ->get();
+
+                    if (!$team->isEmpty()) {
+                        $team_name = $team[0]->user->name;
+                    }
+
+                }
+            }
+
         }
 
         $user = [
             'current' => $current,
             'team_id' => $team_id,
+            'team_name' => $team_name,
             'event_id' => $event_id,
             'brand_id' => $brand_id,
             'employee_id' => $employee_id,
         ];
-
+        
         return base64_encode(json_encode($user));
     }
 
