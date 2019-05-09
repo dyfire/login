@@ -25,7 +25,7 @@ class LoginController extends Controller
             return redirect($this->redirectPath());
         }
 
-        $cookie = \Cookie::forget('user', '/admin');
+        $cookie = \Cookie::forget('user', config('admin.route.prefix'));
 
         return response()->view('login::index')
             ->withCookie($cookie);
@@ -52,7 +52,7 @@ class LoginController extends Controller
             } else {
                 $user = $this->getUserInfo($request);
                 $cookies = [
-                    \Cookie('user', $user, 24 * 60 * 60, '/admin'),
+                    \Cookie('user', $user, 24 * 60 * 60, config('admin.route.prefix')),
                 ];
 
                 return redirect()->intended(config('admin.route.prefix'))
@@ -179,7 +179,7 @@ class LoginController extends Controller
                     ->get();
                 if (!$team->isEmpty()) {
                     $team_id = $team[0]->id;
-                    $team_name = $team[0]->user()->name;
+                    $team_name = $team[0]->user->name;
                 }
             } else {
                 if ($event_id && $event_id > 0) {
@@ -206,7 +206,7 @@ class LoginController extends Controller
             'brand_id' => $brand_id,
             'employee_id' => $employee_id,
         ];
-        
+
         return base64_encode(json_encode($user));
     }
 
