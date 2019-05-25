@@ -37,6 +37,9 @@ class LoginController extends Controller
         $validator = Validator::make($credentials, [
             'username' => 'required',
             'password' => 'required'
+        ], [
+            'username.required' => '请输入登陆名称',
+            'password.required' => '请输入登陆密码'
         ]);
 
         if ($validator->fails()) {
@@ -51,12 +54,20 @@ class LoginController extends Controller
                 return redirect()->intended(config('admin.route.prefix'));
             } else {
                 $user = $this->getUserInfo($request);
-                $cookies = [
-                    \Cookie('user', $user, 24 * 60 * 60, config('admin.route.prefix')),
-                ];
+                if ($user['status'] == 0) {
+                    Auth::guard('admin')->logout();
+                    return Redirect::refresh()->withInput()->withErrors([
+                        'username' => $this->getDisabledLoginMessage()
+                    ]);
+                } else {
+                    $user = base64_encode(json_encode($user));
+                    $cookies = [
+                        \Cookie('user', $user, 24 * 60 * 60, config('admin.route.prefix')),
+                    ];
 
-                return redirect()->intended(config('admin.route.prefix'))
-                    ->withCookies($cookies);
+                    return redirect()->intended(config('admin.route.prefix'))
+                        ->withCookies($cookies);
+                }
             }
         }
 
@@ -102,16 +113,23 @@ class LoginController extends Controller
     {
         return Lang::has('auth.failed')
             ? trans('auth.failed')
-            : 'These credentials do not match our records.';
+            : '用户名或者密码错误.';
+    }
+
+    protected function getDisabledLoginMessage()
+    {
+        return Lang::has('auth.disabled')
+            ? trans('auth.disabled')
+            : '账号已经被禁用';
     }
 
     /**
      * 督导以下用户登陆都需要
      * 获取event_id,brand_id
      * @param $request
-     * @return string
+     * @return array
      */
-    protected function getUserInfo($request): string
+    protected function getUserInfo($request): array
     {
         $username = $request->input('username');
 
@@ -121,23 +139,25 @@ class LoginController extends Controller
         $brand_id = '';
         $employee_id = '';
         $team_name = '';
+        $status = 0;
 
         $admin_user = AdminUser::where('username', '=', $username)->get();
-        if (!$admin_user->isEmpty() && isset($admin_user[0]->id)) {
+        if ($admin_user->isNotEmpty() && isset($admin_user[0]->id)) {
             $id = $admin_user[0]->id;
+            $status = $admin_user[0]->status;
 
             if (Admin::user()->isRole('event')) {
                 $current = 'event';
                 $dt = date('Y-m-d');
                 $event = Event::where('user_id', '=', $id)
-                    ->where('start_date', '<', $dt)
-                    ->where('end_date', '>', $dt)
+                    ->where('start_date', '<=', $dt)
+                    ->where('end_date', '>=', $dt)
                     ->get();
-                if (!$event->isEmpty()) {
+                if ($event->isNotEmpty()) {
                     $team_id = $event[0]->team_id;
                     $event_id = $event[0]->id;
                 } else {
-                    // 只有浏览权限
+                    //
                     $event_id = 0;
                 }
             }
@@ -146,7 +166,7 @@ class LoginController extends Controller
                 $current = 'brand';
                 $brand = Brand::where('user_id', '=', $id)
                     ->get();
-                if (!$brand->isEmpty()) {
+                if ($brand->isNotEmpty()) {
                     $event_id = $brand[0]->event_id;
                     $brand_id = $brand[0]->id;
                 }
@@ -156,7 +176,7 @@ class LoginController extends Controller
                 $current = 'employee';
                 $employee = Employee::where('user_id', '=', $id)
                     ->get();
-                if (!$employee->isEmpty()) {
+                if ($employee->isNotEmpty()) {
                     $event_id = $employee[0]->event_id;
                     $brand_id = $employee[0]->brand_id;
                     $employee_id = $employee[0]->id;
@@ -167,7 +187,7 @@ class LoginController extends Controller
                 $current = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)
                     ->get();
-                if (!$assistant->isEmpty()) {
+                if ($assistant->isNotEmpty()) {
                     $event_id = $assistant[0]->event_id;
                 }
             }
@@ -177,7 +197,7 @@ class LoginController extends Controller
                 $team = Team::where('user_id', '=', $id)
                     ->with('user')
                     ->get();
-                if (!$team->isEmpty()) {
+                if ($team->isNotEmpty()) {
                     $team_id = $team[0]->id;
                     $team_name = $team[0]->user->name;
                 }
@@ -189,7 +209,7 @@ class LoginController extends Controller
                         ->where('prefix_event.id', '=', $event_id)
                         ->get();
 
-                    if (!$team->isEmpty()) {
+                    if ($team->isNotEmpty()) {
                         $team_name = $team[0]->user->name;
                     }
 
@@ -205,9 +225,10 @@ class LoginController extends Controller
             'event_id' => $event_id,
             'brand_id' => $brand_id,
             'employee_id' => $employee_id,
+            'status' => $status
         ];
 
-        return base64_encode(json_encode($user));
+        return $user;
     }
 
     protected function guard()
