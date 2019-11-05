@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 
@@ -65,8 +64,7 @@ class LoginController extends Controller
                         \Cookie('user', $user, 24 * 60 * 60, config('admin.route.prefix')),
                     ];
 
-                    return redirect()->intended(config('admin.route.prefix'))
-                        ->withCookies($cookies);
+                    return redirect(config('admin.route.prefix') . '/home')->withCookies($cookies);
                 }
             }
         }
@@ -148,10 +146,8 @@ class LoginController extends Controller
 
             if (Admin::user()->isRole('event')) {
                 $current = 'event';
-                $dt = date('Y-m-d');
                 $event = Event::where('user_id', '=', $id)
-                    ->where('start_date', '<=', $dt)
-                    ->where('end_date', '>=', $dt)
+                    ->orderBy('id', 'desc')
                     ->get();
                 if ($event->isNotEmpty()) {
                     $team_id = $event[0]->team_id;
@@ -165,7 +161,9 @@ class LoginController extends Controller
             if (Admin::user()->isRole('brand')) {
                 $current = 'brand';
                 $brand = Brand::where('user_id', '=', $id)
+                    ->orderBy('id', 'desc')
                     ->get();
+
                 if ($brand->isNotEmpty()) {
                     $event_id = $brand[0]->event_id;
                     $brand_id = $brand[0]->id;
@@ -175,6 +173,7 @@ class LoginController extends Controller
             if (Admin::user()->isRole('employee')) {
                 $current = 'employee';
                 $employee = Employee::where('user_id', '=', $id)
+                    ->orderBy('id', 'desc')
                     ->get();
                 if ($employee->isNotEmpty()) {
                     $event_id = $employee[0]->event_id;
@@ -183,9 +182,10 @@ class LoginController extends Controller
                 }
             }
 
-            if (Admin::user()->inRoles(['assistant-checker', 'assistant-order'])) {
+            if (Admin::user()->inRoles(['assistant-checker', 'assistant-order', 'assistant-activity', 'assistant-helper'])) {
                 $current = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)
+                    ->orderBy('id', 'desc')
                     ->get();
                 if ($assistant->isNotEmpty()) {
                     $event_id = $assistant[0]->event_id;
@@ -215,7 +215,12 @@ class LoginController extends Controller
 
                 }
             }
+        }
 
+        // 如果活动过期则只允许督导及以上登陆
+        $current_event = Event::getEvent($event_id);
+        if ($current_event) {
+            $status = 0;
         }
 
         $user = [
