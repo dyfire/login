@@ -8,6 +8,7 @@ use App\Admin\Models\Brand;
 use App\Admin\Models\Employee;
 use App\Admin\Models\Event;
 use App\Admin\Models\Team;
+use Carbon\Carbon;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -53,10 +54,10 @@ class LoginController extends Controller
                 return redirect()->intended(config('admin.route.prefix'));
             } else {
                 $user = $this->getUserInfo($request);
-                if ($user['status'] == 0) {
+                if ($user['status'] <= 0) {
                     Auth::guard('admin')->logout();
                     return Redirect::refresh()->withInput()->withErrors([
-                        'username' => $this->getDisabledLoginMessage()
+                        'username' => $this->getDisabledLoginMessage($user['status'])
                     ]);
                 } else {
                     $user = base64_encode(json_encode($user));
@@ -114,11 +115,16 @@ class LoginController extends Controller
             : '用户名或者密码错误.';
     }
 
-    protected function getDisabledLoginMessage()
+    protected function getDisabledLoginMessage($status = 0)
     {
-        return Lang::has('auth.disabled')
-            ? trans('auth.disabled')
-            : '账号已经被禁用';
+        switch ($status) {
+            case 0:
+                return '账号已经被禁用';
+            case -1:
+                return '账号已经被禁用!';
+            case -2:
+                return '账号已经被禁用.';
+        }
     }
 
     /**
@@ -217,12 +223,6 @@ class LoginController extends Controller
             }
         }
 
-        // 如果活动过期则只允许督导及以上登陆
-        $current_event = Event::getEvent($event_id);
-        if ($current_event) {
-            $status = 0;
-        }
-
         $user = [
             'current' => $current,
             'team_id' => $team_id,
@@ -233,10 +233,23 @@ class LoginController extends Controller
             'status' => $status
         ];
 
+        // 如果活动过期则只允许督导及以上登陆
+        if (!Admin::user()->inRoles(['team'])) {
+            $current_event = Event::getEvent($event_id);
+            if (!$current_event) {
+                $user['status'] = -1;
+            } else {
+                if ((Carbon::now()->toDateTimeString() > $current_event->end_date) && !Admin::user()->inRoles(['event', 'team'])) {
+                    $user['status'] = -2;
+                }
+            }
+        }
+
         return $user;
     }
 
-    protected function guard()
+    protected
+    function guard()
     {
         return Auth::guard('admin');
     }
