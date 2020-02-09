@@ -51,7 +51,7 @@ class LoginController extends Controller
             admin_toastr(trans('admin.login_successful'));
 
             if (Admin::user()->inRoles(['super', 'administrator'])) {
-                return redirect()->intended(config('admin.route.prefix'));
+                return redirect()->intended(config('admin.route.prefix') . '/home');
             } else {
                 $user = $this->getUserInfo($request);
                 if ($user['status'] <= 0) {
@@ -248,8 +248,7 @@ class LoginController extends Controller
         return $user;
     }
 
-    protected
-    function guard()
+    protected function guard()
     {
         return Auth::guard('admin');
     }
