@@ -14,6 +14,11 @@
     <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
     <!-- iCheck -->
     <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
+    <style type="text/css">
+        .footer {
+            position:fixed;bottom:0;width:100%;height:50px;line-height:50px;color:#fff;text-align:center
+        }
+    </style>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -24,13 +29,12 @@
 </head>
 <body class="hold-transition login-page"
       @if(config('admin.login_background_image'))style="background: url({{config('admin.login_background_image')}}) no-repeat;background-size: cover;"@endif>
+<br><br>
 <div class="login-box">
-    <div class="login-logo">
-        <a href="{{ admin_base_path('/') }}"><b>{{config('admin.name')}}</b></a>
-    </div>
+
     <!-- /.login-logo -->
     <div class="login-box-body" @if(config('admin.background')) style="background:rgba(255,255,255,0);"@endif>
-        <p class="login-box-msg">{{ trans('admin.login') }} </p>
+        <p class="login-box-msg"><img src="../images/logo.png"></p>
 
         <form action="{{ admin_base_path('auth/login') }}" method="post">
             <div class="form-group has-feedback {!! !$errors->has('username') ?: 'has-error' !!}">
@@ -44,7 +48,7 @@
 
                 <input type="input" class="form-control"
                        @if(config('admin.background')) style="background:rgba(255,255,255,0);"
-                       @endif placeholder="{{ trans('admin.username') }}" name="username" value="{{ old('username') }}">
+                       @endif placeholder="手机账号" name="username" value="{{ old('username') }}">
                 <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback {!! !$errors->has('password') ?: 'has-error' !!}">
@@ -58,14 +62,13 @@
 
                 <input type="password" class="form-control"
                        @if(config('admin.background')) style="background:rgba(255,255,255,0);"
-                       @endif placeholder="{{ trans('admin.password') }}" name="password" value="{{ old('username') }}">
+                       @endif placeholder="登录密码" name="password" value="{{ old('username') }}">
                 <span class="glyphicon glyphicon-lock form-control-feedback"></span>
             </div>
             <div class="row">
                 <div class="row">
-
                     <!-- /.col -->
-                    <div class="col-xs-4 col-md-offset-4">
+                    <div style="margin:5px 30px">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                         <button type="submit"
                                 class="btn btn-primary btn-block btn-flat">{{ trans('admin.login') }}</button>
@@ -77,7 +80,9 @@
     <!-- /.login-box-body -->
 </div>
 <!-- /.login-box -->
-
+<div class="footer">
+    Copyright ©2005-2019 8D.com.cn 版权所有 | <a href="http://www.beian.miit.gov.cn" target="_blank">苏ICP备19018123号</a>
+</div>
 <!-- jQuery 2.1.4 -->
 <script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
 <!-- Bootstrap 3.3.5 -->
