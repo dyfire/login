@@ -34,7 +34,7 @@ class LoginController extends Controller
     public function postLogin(Request $request)
     {
         $credentials = $request->only(['username', 'password']);
-        $validator = Validator::make($credentials, [
+        $validator   = Validator::make($credentials, [
             'username' => 'required',
             'password' => 'required'
         ], [
@@ -51,7 +51,7 @@ class LoginController extends Controller
             admin_toastr(trans('admin.login_successful'));
 
             if (Admin::user()->inRoles(['super', 'administrator'])) {
-                return redirect()->intended(config('admin.route.prefix') . '/home');
+                return redirect('/home');
             } else {
                 $user = $this->getUserInfo($request);
                 if ($user['status'] <= 0) {
@@ -60,7 +60,7 @@ class LoginController extends Controller
                         'username' => $this->getDisabledLoginMessage($user['status'])
                     ]);
                 } else {
-                    $user = base64_encode(json_encode($user));
+                    $user    = base64_encode(json_encode($user));
                     $cookies = [
                         \Cookie('user', $user, 24 * 60 * 60, config('admin.route.prefix')),
                     ];
@@ -137,26 +137,26 @@ class LoginController extends Controller
     {
         $username = $request->input('username');
 
-        $current = '';
-        $team_id = '';
-        $event_id = '';
-        $brand_id = '';
+        $current     = '';
+        $team_id     = '';
+        $event_id    = '';
+        $brand_id    = '';
         $employee_id = '';
-        $team_name = '';
-        $status = 0;
+        $team_name   = '';
+        $status      = 0;
 
         $admin_user = AdminUser::where('username', '=', $username)->get();
         if ($admin_user->isNotEmpty() && isset($admin_user[0]->id)) {
-            $id = $admin_user[0]->id;
+            $id     = $admin_user[0]->id;
             $status = $admin_user[0]->status;
 
             if (Admin::user()->isRole('event')) {
                 $current = 'event';
-                $event = Event::where('user_id', '=', $id)
-                    ->orderBy('id', 'desc')
+                $event   = Event::where('user_id', '=', $id)
+                    ->orderBy('end_date', 'desc')
                     ->get();
                 if ($event->isNotEmpty()) {
-                    $team_id = $event[0]->team_id;
+                    $team_id  = $event[0]->team_id;
                     $event_id = $event[0]->id;
                 } else {
                     //
@@ -166,7 +166,7 @@ class LoginController extends Controller
 
             if (Admin::user()->isRole('brand')) {
                 $current = 'brand';
-                $brand = Brand::where('user_id', '=', $id)
+                $brand   = Brand::where('user_id', '=', $id)
                     ->orderBy('id', 'desc')
                     ->get();
 
@@ -177,19 +177,19 @@ class LoginController extends Controller
             }
 
             if (Admin::user()->isRole('employee')) {
-                $current = 'employee';
+                $current  = 'employee';
                 $employee = Employee::where('user_id', '=', $id)
                     ->orderBy('id', 'desc')
                     ->get();
                 if ($employee->isNotEmpty()) {
-                    $event_id = $employee[0]->event_id;
-                    $brand_id = $employee[0]->brand_id;
+                    $event_id    = $employee[0]->event_id;
+                    $brand_id    = $employee[0]->brand_id;
                     $employee_id = $employee[0]->id;
                 }
             }
 
             if (Admin::user()->inRoles(['assistant-checker', 'assistant-order', 'assistant-activity', 'assistant-helper'])) {
-                $current = 'assistant';
+                $current   = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)
                     ->orderBy('id', 'desc')
                     ->get();
@@ -200,11 +200,11 @@ class LoginController extends Controller
 
             if (Admin::user()->isRole('team')) {
                 $current = 'team';
-                $team = Team::where('user_id', '=', $id)
+                $team    = Team::where('user_id', '=', $id)
                     ->with('user')
                     ->get();
                 if ($team->isNotEmpty()) {
-                    $team_id = $team[0]->id;
+                    $team_id   = $team[0]->id;
                     $team_name = $team[0]->user->name;
                 }
             } else {
@@ -224,13 +224,13 @@ class LoginController extends Controller
         }
 
         $user = [
-            'current' => $current,
-            'team_id' => $team_id,
-            'team_name' => $team_name,
-            'event_id' => $event_id,
-            'brand_id' => $brand_id,
+            'current'     => $current,
+            'team_id'     => $team_id,
+            'team_name'   => $team_name,
+            'event_id'    => $event_id,
+            'brand_id'    => $brand_id,
             'employee_id' => $employee_id,
-            'status' => $status
+            'status'      => $status
         ];
 
         // 如果活动过期则只允许督导及以上登陆
@@ -239,7 +239,8 @@ class LoginController extends Controller
             if (!$current_event) {
                 $user['status'] = -1;
             } else {
-                if ((Carbon::now()->toDateTimeString() > $current_event->end_date) && !Admin::user()->inRoles(['event', 'team'])) {
+                if ((Carbon::now()->toDateTimeString() > $current_event->end_date)
+                    && !Admin::user()->inRoles(['event', 'team'])) {
                     $user['status'] = -2;
                 }
             }
