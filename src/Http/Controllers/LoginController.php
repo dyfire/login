@@ -188,7 +188,13 @@ class LoginController extends Controller
                 }
             }
 
-            if (Admin::user()->inRoles(['assistant-checker', 'assistant-order', 'assistant-activity', 'assistant-helper'])) {
+            if (Admin::user()->inRoles([
+                'assistant-checker',
+                'assistant-order',
+                'assistant-activity',
+                'assistant-helper',
+                'assistant-notice'])) {
+
                 $current   = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)
                     ->orderBy('id', 'desc')
