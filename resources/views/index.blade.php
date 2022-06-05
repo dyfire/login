@@ -14,12 +14,8 @@
     <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
     <!-- iCheck -->
     <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
-    <style type="text/css">
-        .footer {
-            position:fixed;bottom:0;width:100%;height:50px;line-height:50px;color:#fff;text-align:center
-        }
-    </style>
-
+    <link rel="shortcut icon" href="/images/8D.ico">
+    <link rel="stylesheet" href="/css/login.css" type="text/css" media="all">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -27,62 +23,44 @@
     <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="hold-transition login-page"
-      @if(config('admin.login_background_image'))style="background: url({{config('admin.login_background_image')}}) no-repeat;background-size: cover;"@endif>
-<br><br>
-<div class="login-box">
 
-    <!-- /.login-logo -->
-    <div class="login-box-body" @if(config('admin.background')) style="background:rgba(255,255,255,0);"@endif>
-        <p class="login-box-msg"><img src="../images/logo.png"></p>
-
+<body>
+<section class="main">
+    <div class="logo text-center">
+        <img src="/images/logo.png" width="260" height="55">
+    </div>
+    <div class="content-w3ls text-center">
+        <img src="/images/admin.png" alt="" class="img-responsive">
         <form action="{{ admin_base_path('auth/login') }}" method="post">
-            <div class="form-group has-feedback {!! !$errors->has('username') ?: 'has-error' !!}">
-
-                @if($errors->has('username'))
-                    @foreach($errors->get('username') as $message)
-                        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}
-                        </label><br>
-                    @endforeach
-                @endif
-
-                <input type="input" class="form-control"
-                       @if(config('admin.background')) style="background:rgba(255,255,255,0);"
-                       @endif placeholder="手机账号" name="username" value="{{ old('username') }}">
-                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+            @if($errors->has('username'))
+                @foreach($errors->get('username') as $message)
+                    <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}
+                    </label><br>
+                @endforeach
+            @endif
+            @if($errors->has('password'))
+                @foreach($errors->get('password') as $message)
+                    <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}
+                    </label><br>
+                @endforeach
+            @endif
+            <div class="wthree-field">
+                <input type="text" placeholder="用户名" name="username" value="{{ old('username') }}" />
             </div>
-            <div class="form-group has-feedback {!! !$errors->has('password') ?: 'has-error' !!}">
-
-                @if($errors->has('password'))
-                    @foreach($errors->get('password') as $message)
-                        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}
-                        </label></br>
-                    @endforeach
-                @endif
-
-                <input type="password" class="form-control"
-                       @if(config('admin.background')) style="background:rgba(255,255,255,0);"
-                       @endif placeholder="登录密码" name="password" value="{{ old('username') }}">
-                <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+            <div class="wthree-field">
+                <input type="Password" placeholder="密&nbsp;&nbsp;码" name="password" value="{{ old('username') }}" />
             </div>
-            <div class="row">
-                <div class="row">
-                    <!-- /.col -->
-                    <div style="margin:5px 30px">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <button type="submit"
-                                class="btn btn-primary btn-block btn-flat">{{ trans('admin.login') }}</button>
-                    </div>
-                </div>
+            <div class="wthree-field">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn">登录</button>
             </div>
+
         </form>
     </div>
-    <!-- /.login-box-body -->
-</div>
-<!-- /.login-box -->
-<div class="footer">
-    Copyright ©2005-2019 8D.com.cn 版权所有 | <a href="http://www.beian.miit.gov.cn" target="_blank">苏ICP备19018123号</a>
-</div>
+    <div class="copyright">
+        <p>{!! env('APP_COPYRIGHT') !!} | <a href="http://www.beian.miit.gov.cn/">苏ICP备19018123号</a></p>
+    </div>
+</section>
 <!-- jQuery 2.1.4 -->
 <script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
 <!-- Bootstrap 3.3.5 -->

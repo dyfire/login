@@ -193,7 +193,11 @@ class LoginController extends Controller
                 'assistant-order',
                 'assistant-activity',
                 'assistant-helper',
-                'assistant-notice'])) {
+                'assistant-notice',
+                'assistant-hongbao',
+                'assistant-lingqu',
+                'assistant-liangou',
+            ])) {
 
                 $current   = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)
