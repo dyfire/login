@@ -197,7 +197,7 @@ class LoginController extends Controller
                 'assistant-hongbao',
                 'assistant-lingqu',
                 'assistant-liangou',
-            ])) {
+                ])) {
 
                 $current   = 'assistant';
                 $assistant = Assistant::where('user_id', '=', $id)

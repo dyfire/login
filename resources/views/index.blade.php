@@ -58,7 +58,7 @@
         </form>
     </div>
     <div class="copyright">
-        <p>©Copyright 2007-2022 8D.com.cn 版权所有 | 版本:V3.0.5(2022)<br><a><img src="../images/beian.png" style="width:14px; vertical-align: text-bottom;display:inline-block;">苏公网安备32072302010137号</a> <a href="https://beian.miit.gov.cn/">苏ICP备19018123号</a></p>
+     <p>Copyright ©2007-2023 8D.com.cn 版权所有 | 版本:V3.0.5(2022)<br><a><img src="../images/beian.png" style="width:14px; vertical-align: text-bottom;display:inline-block;">苏公网安备32072302010137号</a> <a href="https://beian.miit.gov.cn/">苏ICP备19018123号</a></p>
     </div>
 </section>
 <!-- jQuery 2.1.4 -->
